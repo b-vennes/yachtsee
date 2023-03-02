@@ -21,6 +21,13 @@ object ConsoleApp extends IOApp.Simple:
   val clearScreen: IO[Unit] =
     IO.delay(print("\u001b[2J\u001b[1000A\u001b[1000D"))
 
+  def parseRoll(command: String): List[DiceSet.Index] =
+    command
+      .replace("roll", "")
+      .replace(" ", "")
+      .toList
+      .flatMap(c => DiceSet.Index.from(c).toList)
+
   def handleState(state: GameState)(using
       Random: Random[IO]
   ): IO[Option[GameState]] =
@@ -29,104 +36,73 @@ object ConsoleApp extends IOApp.Simple:
         IO.pure(GameState.GameEnd(card).some)
       case GameState.TurnStart(card) =>
         for
-          _ <- IO.println(card)
           _ <- readLineIO
           roll <- DiceSet.create[IO]()
-        yield GameState.RoundOne(card, roll, List.empty).some
-      case GameState.RoundOne(card, roll, keep) =>
+        yield GameState.RoundOne(card, roll).some
+      case GameState.RoundOne(card, roll) =>
         for
           command <- readLineIO
           nextState <-
             command.toLowerCase() match
-              case command if command.startsWith("drop") =>
-                val keeping =
-                  command
-                    .replace("drop", "")
-                    .replace(" ", "")
-                    .toList
-                    .flatMap(c => DiceSet.Index.from(c).toList)
-                GameState.RoundOne(card, roll, keeping).some.pure[IO]
               case command if command.startsWith("roll") =>
-                roll
-                  .reRoll[IO](keep)
-                  .map(next => GameState.RoundTwo(card, next, List.empty).some)
-              case command if command.startsWith("select") =>
+                roll.reRoll[IO](parseRoll(command)).map(r =>
+                  GameState.RoundTwo(card, r).some
+                )
+              case command if command.startsWith("sel") =>
                 GameState
                   .Selection(
                     card,
                     roll,
-                    None,
-                    GameState.RoundOne(card, roll, List.empty).some
+                    GameState.RoundOne(card, roll).some
                   )
                   .some
                   .pure[IO]
               case command if command.contains("q") => None.pure[IO]
-              case _ => GameState.RoundOne(card, roll, keep).some.pure[IO]
+              case _ => GameState.RoundOne(card, roll).some.pure[IO]
         yield nextState
-      case GameState.RoundTwo(card, roll, keep) =>
+      case GameState.RoundTwo(card, roll) =>
         for
           command <- readLineIO
           nextState <-
             command.toLowerCase() match
-              case command if command.startsWith("drop") =>
-                val keeping =
-                  command
-                    .replace("drop", "")
-                    .replace(" ", "")
-                    .toList
-                    .flatMap(c => DiceSet.Index.from(c).toList)
-                GameState.RoundTwo(card, roll, keeping).some.pure[IO]
               case command if command.startsWith("roll") =>
-                roll
-                  .reRoll[IO](keep)
-                  .map(next => GameState.Selection(card, next, None, None).some)
-              case command if command.startsWith("select") =>
+                roll.reRoll[IO](parseRoll(command)).map(r =>
+                  GameState.Selection(card, r, None).some
+                )
+              case command if command.startsWith("sel") =>
                 GameState
                   .Selection(
                     card,
                     roll,
-                    None,
-                    GameState.RoundTwo(card, roll, List.empty).some
+                    GameState.RoundTwo(card, roll).some
                   )
                   .some
                   .pure[IO]
               case command if command.contains("q") => None.pure[IO]
-              case _ => GameState.RoundTwo(card, roll, keep).some.pure[IO]
+              case _ => GameState.RoundTwo(card, roll).some.pure[IO]
         yield nextState
-      case GameState.Selection(card, dice, choosing, previous) =>
+      case GameState.Selection(card, dice, previous) =>
         for
           command <- readLineIO
           nextState <-
             command.toLowerCase() match
-              case command if command.startsWith("choose") =>
-                GameState
-                  .Selection(
-                    card,
-                    dice,
-                    Card.Opt.from(command.replace("choose", "")),
-                    previous
-                  )
+              case command if command.startsWith("ch") =>
+                Card.Opt.from(command.replace("ch", ""))
+                  .flatMap(selected => card.withOpt(selected, dice))
+                  .fold(GameState.Selection(card, dice, previous))(GameState.TurnStart.apply)
                   .some
                   .pure[IO]
-              case command if command.startsWith("previous") =>
+              case command if command.startsWith("back") =>
                 previous
                   .getOrElse(
-                    GameState.Selection(card, dice, choosing, previous)
-                  )
-                  .some
-                  .pure[IO]
-              case command if command.startsWith("confirm") =>
-                choosing
-                  .flatMap(ch => card.withOpt(ch, dice))
-                  .fold(GameState.Selection(card, dice, choosing, previous))(
-                    next => GameState.TurnStart(next)
+                    GameState.Selection(card, dice, previous)
                   )
                   .some
                   .pure[IO]
               case command if command.contains("q") => None.pure[IO]
               case _ =>
                 GameState
-                  .Selection(card, dice, choosing, previous)
+                  .Selection(card, dice, previous)
                   .some
                   .pure[IO]
         yield nextState
@@ -137,6 +113,7 @@ object ConsoleApp extends IOApp.Simple:
       for
         _ <- clearScreen
         _ <- s.animateIO(0.5.seconds)
+        _ <- IO.println("")
         stateOpt <- handleState(s)
         result = stateOpt.fold(().asRight[GameState])(_.asLeft[Unit])
       yield result

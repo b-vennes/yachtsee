@@ -17,11 +17,12 @@ trait Animation[A]:
     def animateIO(rate: FiniteDuration): IO[Unit] =
       value
         .tailRecM[IO, Unit](state =>
-          IO.println(state.getFrame()) *>
-            state
-              .getNext()
-              .fold(IO(().asRight))(next => IO(next.asLeft))
-              .flatTap(_.fold(_ => IO.sleep(rate), _ => IO.unit))
+          IO.delay(print("\u001b[2J\u001b[1000A\u001b[1000D")) *>
+            IO.println(state.getFrame()) *>
+              state
+                .getNext()
+                .fold(IO(().asRight))(next => IO(next.asLeft))
+                .flatTap(_.fold(_ => IO.sleep(rate), _ => IO.unit))
         )
 
   def imap[B](toA: B => A, toB: A => B): Animation[B] =
@@ -37,6 +38,9 @@ trait Animation[A]:
   def concatNewline[B](other: Animation[B]): Animation[(A, B)] =
     Animation.concatNewline(this, other)
 
+  def concatNewlineText(text: String): Animation[A] =
+    Animation.between(this, "", System.lineSeparator() + text)
+
   def concatEmpty[B](): Animation[(A, B)] =
     Animation.concatEmpty(this)
 
@@ -51,6 +55,9 @@ trait Animation[A]:
 
   def between(left: String, right: String): Animation[A] =
     Animation.between(this, left, right)
+
+  def concatEmptyNewline(): Animation[A] =
+    Animation.between(this, "", System.lineSeparator())
 
 object Animation:
 

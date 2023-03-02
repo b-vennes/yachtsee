@@ -5,7 +5,7 @@ import org.vennes.yahtzee.types.*
 
 enum GameState:
   case TurnStart(card: Card)
-  case RoundOne(card: Card, roll: DiceSet, keep: List[DiceSet.Index])
-  case RoundTwo(card: Card, roll: DiceSet, keep: List[DiceSet.Index])
-  case Selection(card: Card, dice: DiceSet, choose: Option[Card.Opt], previous: Option[GameState])
+  case RoundOne(card: Card, roll: DiceSet)
+  case RoundTwo(card: Card, roll: DiceSet)
+  case Selection(card: Card, dice: DiceSet, previous: Option[GameState])
   case GameEnd(card: Card)

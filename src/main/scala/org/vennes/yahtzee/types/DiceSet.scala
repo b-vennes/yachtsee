@@ -22,10 +22,10 @@ case class DiceSet(
       case DiceSet.Index.E => this.copy(e = value)
 
   def reRoll[F[_]](
-      rolling: List[DiceSet.Index]
+      roll: List[DiceSet.Index]
   )(using F: Monad[F], Random: Random[F]): F[DiceSet] =
-    rolling.foldLeft(this.pure[F]) { case (roundF, index) =>
-      Dice.roll[F]().flatMap(value => roundF.map(_.replace(index, value)))
+    roll.foldLeft(this.pure[F]) { case (roundF, index) =>
+        Dice.roll[F]().flatMap(value => roundF.map(_.replace(index, value)))
     }
 
   def toList: List[Dice.Side] =
@@ -68,3 +68,11 @@ object DiceSet:
         case 'e' => DiceSet.Index.E.some
         case 'E' => DiceSet.Index.E.some
         case _   => None
+
+  val indexList: List[Index] = List(
+    Index.A,
+    Index.B,
+    Index.C,
+    Index.D,
+    Index.E
+  )
