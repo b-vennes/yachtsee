@@ -87,6 +87,28 @@ case class Card(
 
   def complete: Boolean = !active
 
+  def topScore: Int =
+    ones.getOrElse(0) +
+      twos.getOrElse(0) +
+      threes.getOrElse(0) +
+      fours.getOrElse(0) +
+      fives.getOrElse(0) +
+      sixes.getOrElse(0)
+
+  def score: Int =
+    val top = topScore
+    val topWithBonus = if topScore >= 63 then topScore + 35 else topScore
+
+    val bottomScore =
+      threeOak.getOrElse(0) +
+        fourOak.getOrElse(0) +
+        fullHouse.getOrElse(0) +
+        smallStraight.getOrElse(0) +
+        largeStraight.getOrElse(0) +
+        yahtzee.getOrElse(0)
+
+    topWithBonus + bottomScore
+
 object Card:
 
   enum Opt:
@@ -120,6 +142,7 @@ object Card:
         case "largestraight" => Opt.LargeStraight.some
         case "yahtzee"       => Opt.Yahtzee.some
         case "chance"        => Opt.Chance.some
+        case _               => None
 
   def whenNone[A, B](option: Option[A], value: => B): Option[B] =
     option match

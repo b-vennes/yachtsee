@@ -7,14 +7,15 @@ import cats.syntax.all.*
 import cats.Show
 import org.vennes.yahtzee.types.GameState.TurnStart
 
+object Hints:
+  val viewCard: String =
+    "Say 'card' to choose a spot on the card for this roll."
+  val roll: String = "Say 'roll <a> <b> <c> <d> <e>' to re-roll specific dice."
+
 val animateTurnStart: Animation[GameState.TurnStart] =
   animateCard
-    .between(
-      """New Game:
-        |""".stripMargin,
-      """<enter> to roll
-        |""".stripMargin
-    )
+    .concatNewlineText("")
+    .concatNewlineText("Press <enter> to roll")
     .imap[GameState.TurnStart](
       turnStart => turnStart.card,
       card => GameState.TurnStart(card)
@@ -28,22 +29,14 @@ val animateRoundOne: Animation[GameState.RoundOne] =
       """
         |""".stripMargin
     )
-    .concatNewline(
-      Animation
-        .static[List[DiceSet.Index]](selected =>
-          if selected.isEmpty then "say 'drop <a><b><c><d><e>' to re-roll dice"
-          else s"Dropping -- ${selected.mkString(" ")}"
-        )
-        .between(
-          "",
-          """say 'select' to choose a spot for this roll
-            |say 'roll' to roll the dice you aren't keeping""".stripMargin
-        )
-    )
-    .concatEmpty[Card]()
+    .concatNewline(animateCard)
+    .concatEmptyNewline()
+    .concatNewlineText(Hints.roll)
+    .concatEmptyNewline()
+    .concatNewlineText(Hints.viewCard)
     .imap[GameState.RoundOne](
-      roundOne => (roundOne.roll -> roundOne.keep) -> roundOne.card,
-      state => GameState.RoundOne(state._2, state._1._1, state._1._2)
+      roundOne => (roundOne.roll) -> roundOne.card,
+      state => GameState.RoundOne(state._2, state._1)
     )
 
 val animateRoundTwo: Animation[GameState.RoundTwo] =
@@ -54,22 +47,13 @@ val animateRoundTwo: Animation[GameState.RoundTwo] =
       """
         |""".stripMargin
     )
-    .concatNewline(
-      Animation
-        .static[List[DiceSet.Index]](selected =>
-          if selected.isEmpty then "say 'drop <a><b><c><d><e>' to re-roll dice"
-          else s"Dropping -- ${selected.mkString(" ")}"
-        )
-        .between(
-          "",
-          """say 'select' to choose a spot for this roll
-            |say 'roll' to roll the dice you aren't keeping""".stripMargin
-        )
-    )
-    .concatEmpty[Card]()
+    .concatNewline(animateCard)
+    .concatNewlineText(Hints.roll)
+    .concatEmptyNewline()
+    .concatNewlineText(Hints.viewCard)
     .imap[GameState.RoundTwo](
-      roundTwo => (roundTwo.roll -> roundTwo.keep) -> roundTwo.card,
-      state => GameState.RoundTwo(state._2, state._1._1, state._1._2)
+      roundTwo => roundTwo.roll -> roundTwo.card,
+      state => GameState.RoundTwo(state._2, state._1)
     )
 
 val animateSelection: Animation[GameState.Selection] =
@@ -79,19 +63,20 @@ val animateSelection: Animation[GameState.Selection] =
         |""".stripMargin,
       ""
     )
-    .concatNewline(
-      Animation.static[Option[Card.Opt]](cardOpt =>
-        cardOpt.fold("")(c => s"selecting $c")
-      )
-    )
+    .concatNewline(animateDiceSetNoLetters)
+    .concatNewlineText("Say 'ch <spot>' to select a spot to play your roll.")
     .concatNewline(
       Animation.static[Option[GameState]](previous =>
-        previous.fold("")(_ => "say 'previous' to go back to rolling")
+        previous.fold("")(_ => "Say 'back' to go back to rolling.")
       )
     )
     .imap[GameState.Selection](
-      selection => ((selection.card, selection.dice, selection.choose) -> selection.choose) -> selection.previous,
-      values => GameState.Selection(values._1._1._1, values._1._1._2, values._1._1._3, values._2)
+      selection =>
+        ((
+          selection.card,
+          selection.dice
+        ) -> selection.dice) -> selection.previous,
+      values => GameState.Selection(values._1._1._1, values._1._1._2, values._2)
     )
 
 val animateGameEnd: Animation[GameState.GameEnd] =
@@ -122,21 +107,24 @@ given animateGameState: Animation[GameState] =
       )
     )
     .imap[GameState](
-      gameState => gameState match
-        case turnStart: GameState.TurnStart =>
-          Left(turnStart)
-        case roundOne: GameState.RoundOne =>
-          Right(Left(roundOne))
-        case roundTwo: GameState.RoundTwo =>
-          Right(Right(Left(roundTwo)))
-        case selection: GameState.Selection =>
-          Right(Right(Right(Left(selection))))
-        case gameEnd: GameState.GameEnd =>
-          Right(Right(Right(Right(gameEnd)))),
-      eithers => eithers match
-        case Left(turnStart) => turnStart
-        case Right(Left(roundOne)) => roundOne
-        case Right(Right(Left(roundTwo))) => roundTwo
-        case Right(Right(Right(Left(selection)))) => selection
-        case Right(Right(Right(Right(gameEnd)))) => gameEnd
+      gameState =>
+        gameState match
+          case turnStart: GameState.TurnStart =>
+            Left(turnStart)
+          case roundOne: GameState.RoundOne =>
+            Right(Left(roundOne))
+          case roundTwo: GameState.RoundTwo =>
+            Right(Right(Left(roundTwo)))
+          case selection: GameState.Selection =>
+            Right(Right(Right(Left(selection))))
+          case gameEnd: GameState.GameEnd =>
+            Right(Right(Right(Right(gameEnd))))
+      ,
+      eithers =>
+        eithers match
+          case Left(turnStart)                      => turnStart
+          case Right(Left(roundOne))                => roundOne
+          case Right(Right(Left(roundTwo)))         => roundTwo
+          case Right(Right(Right(Left(selection)))) => selection
+          case Right(Right(Right(Right(gameEnd))))  => gameEnd
     )

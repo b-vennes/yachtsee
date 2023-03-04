@@ -1,11 +1,13 @@
 package org.vennes.yahtzee.animation.instances
 
-import cats.Show
+import cats.syntax.all.*
+import cats.{Show, Applicative}
 import org.vennes.yahtzee.types.*
 import org.vennes.yahtzee.animation.Animation
+import cats.effect.std.Random
 
-given animateDiceSet: Animation[DiceSet] =
-  def diceInDiceSet(letter: String): Animation[Dice.Side] =
+def diceInDiceSet(letterOpt: Option[String]): Animation[Dice.Side] =
+  letterOpt.fold(animateDiceSide)((letter: String) =>
     Animation
       .concat(
         animateDiceSide,
@@ -13,17 +15,19 @@ given animateDiceSet: Animation[DiceSet] =
         System.lineSeparator()
       )
       .imap[Dice.Side](_ -> (), _._1)
+  )
 
+val animateDiceSet: Animation[DiceSet] =
   Animation
     .interleave(
-      diceInDiceSet("A"),
+      diceInDiceSet("A".some),
       Animation.interleave(
-        diceInDiceSet("B"),
+        diceInDiceSet("B".some),
         Animation.interleave(
-          diceInDiceSet("C"),
+          diceInDiceSet("C".some),
           Animation.interleave(
-            diceInDiceSet("D"),
-            diceInDiceSet("E"),
+            diceInDiceSet("D".some),
+            diceInDiceSet("E".some),
             System.lineSeparator(),
             " "
           ),
@@ -48,3 +52,42 @@ given animateDiceSet: Animation[DiceSet] =
           values._2._2._2._2
         )
     )
+
+val animateDiceSetNoLetters: Animation[DiceSet] =
+  Animation
+    .interleave(
+      diceInDiceSet(None),
+      Animation.interleave(
+        diceInDiceSet(None),
+        Animation.interleave(
+          diceInDiceSet(None),
+          Animation.interleave(
+            diceInDiceSet(None),
+            diceInDiceSet(None),
+            System.lineSeparator(),
+            " "
+          ),
+          System.lineSeparator(),
+          " "
+        ),
+        System.lineSeparator(),
+        " "
+      ),
+      System.lineSeparator(),
+      " "
+    )
+    .imap(
+      diceSet =>
+        diceSet.a -> (diceSet.b -> (diceSet.c -> (diceSet.d -> diceSet.e))),
+      values =>
+        DiceSet(
+          values._1,
+          values._2._1,
+          values._2._2._1,
+          values._2._2._2._1,
+          values._2._2._2._2
+        )
+    )
+
+def generateRollingFrames[F[_]: Random: Applicative](): F[List[Dice.Side]] =
+  (1 to 10).toList.traverse(_ => Dice.roll[F]())
