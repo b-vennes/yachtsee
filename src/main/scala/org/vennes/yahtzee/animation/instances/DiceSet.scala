@@ -7,16 +7,16 @@ import org.vennes.yahtzee.animation.Animation
 import cats.effect.std.Random
 
 def diceInDiceSet(letterOpt: Option[String]): Animation[Dice.Side] =
-    letterOpt.fold(animateDiceSide)((letter: String) =>
-      Animation
-        .concat(
-          animateDiceSide,
-          Animation.unit(s"     $letter"),
-          System.lineSeparator()
-        )
-        .imap[Dice.Side](_ -> (), _._1)
-    )
-    
+  letterOpt.fold(animateDiceSide)((letter: String) =>
+    Animation
+      .concat(
+        animateDiceSide,
+        Animation.unit(s"     $letter"),
+        System.lineSeparator()
+      )
+      .imap[Dice.Side](_ -> (), _._1)
+  )
+
 val animateDiceSet: Animation[DiceSet] =
   Animation
     .interleave(

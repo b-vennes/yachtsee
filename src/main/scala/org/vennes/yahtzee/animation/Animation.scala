@@ -19,10 +19,10 @@ trait Animation[A]:
         .tailRecM[IO, Unit](state =>
           IO.delay(print("\u001b[2J\u001b[1000A\u001b[1000D")) *>
             IO.println(state.getFrame()) *>
-              state
-                .getNext()
-                .fold(IO(().asRight))(next => IO(next.asLeft))
-                .flatTap(_.fold(_ => IO.sleep(rate), _ => IO.unit))
+            state
+              .getNext()
+              .fold(IO(().asRight))(next => IO(next.asLeft))
+              .flatTap(_.fold(_ => IO.sleep(rate), _ => IO.unit))
         )
 
   def imap[B](toA: B => A, toB: A => B): Animation[B] =
@@ -44,7 +44,11 @@ trait Animation[A]:
   def concatEmpty[B](): Animation[(A, B)] =
     Animation.concatEmpty(this)
 
-  def interleave[B](other: Animation[B], seperator: String, splitOn: String): Animation[(A, B)] =
+  def interleave[B](
+      other: Animation[B],
+      seperator: String,
+      splitOn: String
+  ): Animation[(A, B)] =
     Animation.interleave(this, other, splitOn, seperator)
 
   def frameMap(f: String => String): Animation[A] =
@@ -113,8 +117,8 @@ object Animation:
     )
 
   def concatNewline[A, B](
-    a: Animation[A],
-    b: Animation[B]
+      a: Animation[A],
+      b: Animation[B]
   ): Animation[(A, B)] =
     concat(a, b, System.lineSeparator())
 
@@ -184,7 +188,11 @@ object Animation:
       a.unconsFrame()
     )
 
-  def between[A](animA: Animation[A], left: String, right: String): Animation[A] =
+  def between[A](
+      animA: Animation[A],
+      left: String,
+      right: String
+  ): Animation[A] =
     Animation.instance[A](a =>
       import animA.*
 
@@ -193,13 +201,17 @@ object Animation:
       (left + str + right, nextA)
     )
 
-  def either[A, B](left: Animation[A], right: Animation[B]): Animation[Either[A, B]] =
+  def either[A, B](
+      left: Animation[A],
+      right: Animation[B]
+  ): Animation[Either[A, B]] =
     Animation.instance[Either[A, B]](either =>
       either.fold(
         a =>
           import left.*
           val (strA, nextA) = a.unconsFrame()
-          strA -> nextA.map(_.asLeft),
+          strA -> nextA.map(_.asLeft)
+        ,
         b =>
           import right.*
           val (strB, nextB) = b.unconsFrame()

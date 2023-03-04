@@ -25,7 +25,7 @@ case class DiceSet(
       roll: List[DiceSet.Index]
   )(using F: Monad[F], Random: Random[F]): F[DiceSet] =
     roll.foldLeft(this.pure[F]) { case (roundF, index) =>
-        Dice.roll[F]().flatMap(value => roundF.map(_.replace(index, value)))
+      Dice.roll[F]().flatMap(value => roundF.map(_.replace(index, value)))
     }
 
   def toList: List[Dice.Side] =

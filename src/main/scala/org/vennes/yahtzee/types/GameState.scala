@@ -2,7 +2,6 @@ package org.vennes.yahtzee.types
 
 import org.vennes.yahtzee.types.*
 
-
 enum GameState:
   case TurnStart(card: Card)
   case RoundOne(card: Card, roll: DiceSet)

@@ -7,10 +7,9 @@ import cats.syntax.all.*
 import cats.Show
 import org.vennes.yahtzee.types.GameState.TurnStart
 
-object Hints {
+object Hints:
   val select: String = "Say 'sel' to choose a spot on the card for this roll."
   val roll: String = "Say 'roll <a> <b> <c> <d> <e>' to re-roll specific dice."
-}
 
 val animateTurnStart: Animation[GameState.TurnStart] =
   animateCard
@@ -71,7 +70,11 @@ val animateSelection: Animation[GameState.Selection] =
       )
     )
     .imap[GameState.Selection](
-      selection => ((selection.card, selection.dice) -> selection.dice) -> selection.previous,
+      selection =>
+        ((
+          selection.card,
+          selection.dice
+        ) -> selection.dice) -> selection.previous,
       values => GameState.Selection(values._1._1._1, values._1._1._2, values._2)
     )
 
@@ -103,21 +106,24 @@ given animateGameState: Animation[GameState] =
       )
     )
     .imap[GameState](
-      gameState => gameState match
-        case turnStart: GameState.TurnStart =>
-          Left(turnStart)
-        case roundOne: GameState.RoundOne =>
-          Right(Left(roundOne))
-        case roundTwo: GameState.RoundTwo =>
-          Right(Right(Left(roundTwo)))
-        case selection: GameState.Selection =>
-          Right(Right(Right(Left(selection))))
-        case gameEnd: GameState.GameEnd =>
-          Right(Right(Right(Right(gameEnd)))),
-      eithers => eithers match
-        case Left(turnStart) => turnStart
-        case Right(Left(roundOne)) => roundOne
-        case Right(Right(Left(roundTwo))) => roundTwo
-        case Right(Right(Right(Left(selection)))) => selection
-        case Right(Right(Right(Right(gameEnd)))) => gameEnd
+      gameState =>
+        gameState match
+          case turnStart: GameState.TurnStart =>
+            Left(turnStart)
+          case roundOne: GameState.RoundOne =>
+            Right(Left(roundOne))
+          case roundTwo: GameState.RoundTwo =>
+            Right(Right(Left(roundTwo)))
+          case selection: GameState.Selection =>
+            Right(Right(Right(Left(selection))))
+          case gameEnd: GameState.GameEnd =>
+            Right(Right(Right(Right(gameEnd))))
+      ,
+      eithers =>
+        eithers match
+          case Left(turnStart)                      => turnStart
+          case Right(Left(roundOne))                => roundOne
+          case Right(Right(Left(roundTwo)))         => roundTwo
+          case Right(Right(Right(Left(selection)))) => selection
+          case Right(Right(Right(Right(gameEnd))))  => gameEnd
     )

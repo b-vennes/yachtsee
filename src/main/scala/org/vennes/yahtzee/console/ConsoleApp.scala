@@ -45,9 +45,9 @@ object ConsoleApp extends IOApp.Simple:
           nextState <-
             command.toLowerCase() match
               case command if command.startsWith("roll") =>
-                roll.reRoll[IO](parseRoll(command)).map(r =>
-                  GameState.RoundTwo(card, r).some
-                )
+                roll
+                  .reRoll[IO](parseRoll(command))
+                  .map(r => GameState.RoundTwo(card, r).some)
               case command if command.startsWith("sel") =>
                 GameState
                   .Selection(
@@ -66,9 +66,9 @@ object ConsoleApp extends IOApp.Simple:
           nextState <-
             command.toLowerCase() match
               case command if command.startsWith("roll") =>
-                roll.reRoll[IO](parseRoll(command)).map(r =>
-                  GameState.Selection(card, r, None).some
-                )
+                roll
+                  .reRoll[IO](parseRoll(command))
+                  .map(r => GameState.Selection(card, r, None).some)
               case command if command.startsWith("sel") =>
                 GameState
                   .Selection(
@@ -87,9 +87,12 @@ object ConsoleApp extends IOApp.Simple:
           nextState <-
             command.toLowerCase() match
               case command if command.startsWith("ch") =>
-                Card.Opt.from(command.replace("ch", ""))
+                Card.Opt
+                  .from(command.replace("ch", ""))
                   .flatMap(selected => card.withOpt(selected, dice))
-                  .fold(GameState.Selection(card, dice, previous))(GameState.TurnStart.apply)
+                  .fold(GameState.Selection(card, dice, previous))(
+                    GameState.TurnStart.apply
+                  )
                   .some
                   .pure[IO]
               case command if command.startsWith("back") =>

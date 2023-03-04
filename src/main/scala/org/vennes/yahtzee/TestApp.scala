@@ -13,14 +13,14 @@ import cats.effect.std.Random
 import cats.Applicative
 
 object TestApp extends IOApp.Simple:
-  
+
   given animate: Animation[DiceSet] = animateDiceSet
 
   case class DiceState(result: Dice.Side, frames: List[Dice.Side]):
     val animate: (String, Option[DiceState]) =
       frames match
         case next :: tail => next.show -> DiceState(result, tail).some
-        case _ => result.show -> None
+        case _            => result.show -> None
 
   val randomIO: IO[Random[IO]] = Random.scalaUtilRandom[IO]
 

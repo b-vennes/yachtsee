@@ -5,8 +5,7 @@ import org.vennes.yahtzee.types.*
 import cats.Show
 import org.vennes.yahtzee.animation.Animation
 
-given showCard: Show[Card] = (card: Card) =>
-  s"""-------------------------------
+given showCard: Show[Card] = (card: Card) => s"""-------------------------------
       |ones             | ${card.ones.fold("_")(_.show)}
       |twos             | ${card.twos.fold("_")(_.show)}
       |threes           | ${card.threes.fold("_")(_.show)}
