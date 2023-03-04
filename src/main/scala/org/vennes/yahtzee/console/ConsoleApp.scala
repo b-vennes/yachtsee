@@ -48,7 +48,7 @@ object ConsoleApp extends IOApp.Simple:
                 roll
                   .reRoll[IO](parseRoll(command))
                   .map(r => GameState.RoundTwo(card, r).some)
-              case command if command.startsWith("sel") =>
+              case command if command.startsWith("card") =>
                 GameState
                   .Selection(
                     card,
@@ -69,7 +69,7 @@ object ConsoleApp extends IOApp.Simple:
                 roll
                   .reRoll[IO](parseRoll(command))
                   .map(r => GameState.Selection(card, r, None).some)
-              case command if command.startsWith("sel") =>
+              case command if command.startsWith("card") =>
                 GameState
                   .Selection(
                     card,

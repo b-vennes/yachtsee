@@ -8,7 +8,8 @@ import cats.Show
 import org.vennes.yahtzee.types.GameState.TurnStart
 
 object Hints:
-  val select: String = "Say 'sel' to choose a spot on the card for this roll."
+  val viewCard: String =
+    "Say 'card' to choose a spot on the card for this roll."
   val roll: String = "Say 'roll <a> <b> <c> <d> <e>' to re-roll specific dice."
 
 val animateTurnStart: Animation[GameState.TurnStart] =
@@ -32,7 +33,7 @@ val animateRoundOne: Animation[GameState.RoundOne] =
     .concatEmptyNewline()
     .concatNewlineText(Hints.roll)
     .concatEmptyNewline()
-    .concatNewlineText(Hints.select)
+    .concatNewlineText(Hints.viewCard)
     .imap[GameState.RoundOne](
       roundOne => (roundOne.roll) -> roundOne.card,
       state => GameState.RoundOne(state._2, state._1)
@@ -49,7 +50,7 @@ val animateRoundTwo: Animation[GameState.RoundTwo] =
     .concatNewline(animateCard)
     .concatNewlineText(Hints.roll)
     .concatEmptyNewline()
-    .concatNewlineText(Hints.select)
+    .concatNewlineText(Hints.viewCard)
     .imap[GameState.RoundTwo](
       roundTwo => roundTwo.roll -> roundTwo.card,
       state => GameState.RoundTwo(state._2, state._1)
