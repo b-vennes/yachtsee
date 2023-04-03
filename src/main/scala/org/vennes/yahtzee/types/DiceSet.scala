@@ -1,8 +1,9 @@
 package org.vennes.yahtzee.types
 
 import cats.syntax.all.*
-import cats.Monad
+import cats.{Monad, Applicative}
 import cats.effect.std.Random
+import org.vennes.yahtzee.animation.Animation
 
 import org.vennes.yahtzee.types.*
 
@@ -12,24 +13,27 @@ case class DiceSet(
     c: Dice.Side,
     d: Dice.Side,
     e: Dice.Side
-):
+)
+
+extension (self: DiceSet)
+
   def replace(index: DiceSet.Index, value: Dice.Side): DiceSet =
     index match
-      case DiceSet.Index.A => this.copy(a = value)
-      case DiceSet.Index.B => this.copy(b = value)
-      case DiceSet.Index.C => this.copy(c = value)
-      case DiceSet.Index.D => this.copy(d = value)
-      case DiceSet.Index.E => this.copy(e = value)
+      case DiceSet.Index.A => self.copy(a = value)
+      case DiceSet.Index.B => self.copy(b = value)
+      case DiceSet.Index.C => self.copy(c = value)
+      case DiceSet.Index.D => self.copy(d = value)
+      case DiceSet.Index.E => self.copy(e = value)
 
   def reRoll[F[_]](
       roll: List[DiceSet.Index]
   )(using F: Monad[F], Random: Random[F]): F[DiceSet] =
-    roll.foldLeft(this.pure[F]) { case (roundF, index) =>
+    roll.foldLeft(self.pure[F]) { case (roundF, index) =>
       Dice.roll[F]().flatMap(value => roundF.map(_.replace(index, value)))
     }
 
   def toList: List[Dice.Side] =
-    List(a, b, c, d, e)
+    List(self.a, self.b, self.c, self.d, self.e)
 
   def toIntList: List[Int] = toList.map(_.toInt)
 
@@ -76,3 +80,51 @@ object DiceSet:
     Index.D,
     Index.E
   )
+
+  def diceInDiceSet(label: String)(using DiceSideAnimation: Animation[Dice.Side]): Animation[Dice.Side] =
+    Animation
+      .concat(
+        DiceSideAnimation,
+        Animation.unit(s"     $label"),
+        System.lineSeparator()
+      )
+      .imap[Dice.Side](_ -> (), _._1)
+
+  given Animation[DiceSet] =
+    Animation
+      .interleave(
+        diceInDiceSet("A"),
+        Animation.interleave(
+          diceInDiceSet("B"),
+          Animation.interleave(
+            diceInDiceSet("C"),
+            Animation.interleave(
+              diceInDiceSet("D"),
+              diceInDiceSet("E"),
+              System.lineSeparator(),
+              " "
+            ),
+            System.lineSeparator(),
+            " "
+          ),
+          System.lineSeparator(),
+          " "
+        ),
+        System.lineSeparator(),
+        " "
+      )
+      .imap(
+        diceSet =>
+          diceSet.a -> (diceSet.b -> (diceSet.c -> (diceSet.d -> diceSet.e))),
+        values =>
+          DiceSet(
+            values._1,
+            values._2._1,
+            values._2._2._1,
+            values._2._2._2._1,
+            values._2._2._2._2
+          )
+      )
+
+  def generateRollingFrames[F[_]: Random: Applicative](): F[List[Dice.Side]] =
+    (1 to 10).toList.traverse(_ => Dice.roll[F]())

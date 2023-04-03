@@ -1,9 +1,10 @@
-package org.vennes.yahtzee.animation.types
+package org.vennes.yahtzee.types
 
 import cats.syntax.all.{*, given}
 import org.vennes.yahtzee.types.Dice
 import cats.effect.std.Random
 import cats.Applicative
+import org.vennes.yahtzee.animation.Animation
 
 case class DiceRoll(result: Dice.Side, frames: List[Dice.Side])
 
@@ -18,3 +19,10 @@ object DiceRoll:
           frames
         )
       )
+
+  given animation: Animation[DiceRoll] =
+    Animation.instance(state => 
+      state.frames match
+        case next :: remaining => next.show -> Some(DiceRoll(state.result, state.frames))
+        case _ => state.result.show -> None
+    )

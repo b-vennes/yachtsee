@@ -6,11 +6,11 @@ import org.vennes.yahtzee.types.*
 import org.vennes.yahtzee.animation.Animation
 import cats.effect.std.Random
 
-def diceInDiceSet(letterOpt: Option[String]): Animation[Dice.Side] =
-  letterOpt.fold(animateDiceSide)((letter: String) =>
+def diceInDiceSet(letterOpt: Option[String])(using DiceSideAnimation: Animation[Dice.Side]): Animation[Dice.Side] =
+  letterOpt.fold(DiceSideAnimation)((letter: String) =>
     Animation
       .concat(
-        animateDiceSide,
+        DiceSideAnimation,
         Animation.unit(s"     $letter"),
         System.lineSeparator()
       )
