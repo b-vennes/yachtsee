@@ -6,7 +6,7 @@ import cats.effect.std.Random
 import org.vennes.yahtzee.types.*
 import org.vennes.yahtzee.console.*
 import org.vennes.yahtzee.animation.instances.given
-import org.vennes.yahtzee.animation.Animation
+import org.vennes.yahtzee.animation.{Animation, AnimationV2}
 import scala.concurrent.duration.*
 
 object ConsoleApp extends IOApp.Simple:
@@ -111,11 +111,15 @@ object ConsoleApp extends IOApp.Simple:
         yield nextState
       case _ => None.pure[IO]
 
+  def makeAnimation(state: GameState): AnimationV2[IO] = ???
+
+  given cats.arrow.FunctionK[IO, IO] = cats.arrow.FunctionK.id[IO]
+
   def gameIO(state: GameState)(using Random: Random[IO]): IO[Unit] =
     state.tailRecM[IO, Unit](s =>
       for
         _ <- clearScreen
-        _ <- s.animateIO(0.5.seconds)
+        _ <- makeAnimation(s).animateIO(0.5.seconds)
         _ <- IO.println("")
         stateOpt <- handleState(s)
         result = stateOpt.fold(().asRight[GameState])(_.asLeft[Unit])
