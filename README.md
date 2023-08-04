@@ -1,4 +1,4 @@
-# Yahtzee
+# Yachtsee
 
 A solo game of Yahtzee that runs within your terminal.
 
