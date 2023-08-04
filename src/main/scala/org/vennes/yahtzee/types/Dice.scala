@@ -7,13 +7,14 @@ import scala.runtime.AbstractFunction4
 
 object Dice:
 
-  enum Side:
+  enum Side {
     case One
     case Two
     case Three
     case Four
     case Five
     case Six
+  }
 
   val sides: List[Side] =
     List(Side.One, Side.Two, Side.Three, Side.Four, Side.Five, Side.Six)
@@ -25,10 +26,11 @@ object Dice:
 
   extension (side: Side)
     def toInt: Int =
-      side match
+      side match {
         case Side.One   => 1
         case Side.Two   => 2
         case Side.Three => 3
         case Side.Four  => 4
         case Side.Five  => 5
         case Side.Six   => 6
+      }

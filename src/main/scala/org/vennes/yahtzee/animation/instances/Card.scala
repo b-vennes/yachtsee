@@ -5,34 +5,33 @@ import org.vennes.yahtzee.types.*
 import cats.Show
 import org.vennes.yahtzee.animation.Animation
 
-given showCard: Show[Card] = (card: Card) => s"""-------------------------------
-      |ones             | ${card.ones.fold("_")(_.show)}
-      |twos             | ${card.twos.fold("_")(_.show)}
-      |threes           | ${card.threes.fold("_")(_.show)}
-      |fours            | ${card.fours.fold("_")(_.show)}
-      |fives            | ${card.fives.fold("_")(_.show)}
-      |sixes            | ${card.sixes.fold("_")(_.show)}
-      |------------------------------
-      |top              | ${card.topScore}
-      |------------------------------
-      |three of a kind  | ${card.threeOak.fold("_")(_.show)}
-      |four of a kind   | ${card.fourOak.fold("_")(_.show)}
-      |full house:      | ${card.fullHouse.fold("_")(_.show)}
-      |small straight   | ${card.smallStraight.fold("_")(_.show)}
-      |large straight   | ${card.largeStraight.fold("_")(_.show)}
-      |chance           | ${card.chance.fold("_")(_.show)}
-      |yahtzee          | ${card.yahtzee.fold("_")(_.show)}
-      |bonuses          | ${card.bonuses * 50}
-      |-------------------------------
-      |total            | ${card.score}
-      |-------------------------------""".stripMargin
+def drawCard(card: Card): String =
+  s"""-------------------------------
+    |ones             | ${card.ones.fold("_")(_.show)}
+    |twos             | ${card.twos.fold("_")(_.show)}
+    |threes           | ${card.threes.fold("_")(_.show)}
+    |fours            | ${card.fours.fold("_")(_.show)}
+    |fives            | ${card.fives.fold("_")(_.show)}
+    |sixes            | ${card.sixes.fold("_")(_.show)}
+    |------------------------------
+    |top              | ${card.topScore}
+    |------------------------------
+    |three of a kind  | ${card.threeOak.fold("_")(_.show)}
+    |four of a kind   | ${card.fourOak.fold("_")(_.show)}
+    |full house:      | ${card.fullHouse.fold("_")(_.show)}
+    |small straight   | ${card.smallStraight.fold("_")(_.show)}
+    |large straight   | ${card.largeStraight.fold("_")(_.show)}
+    |chance           | ${card.chance.fold("_")(_.show)}
+    |yahtzee          | ${card.yahtzee.fold("_")(_.show)}
+    |bonuses          | ${card.bonuses * 50}
+    |-------------------------------
+    |total            | ${card.score}
+    |-------------------------------""".stripMargin
 
-given animateCard: Animation[Card] = Animation.fromShow()
+def animateCard(card: Card): Animation =
+  Animation.frame(drawCard(card))
 
-given showCardWithOptions: Show[(Card, DiceSet)] = values =>
-  val card = values._1
-  val dice = values._2
-
+def drawCardWithOptions(card: Card, dice: DiceSet): String =
   def futureScore(value: Int): String = "_ -> " + value
 
   def optValue(
@@ -81,5 +80,5 @@ given showCardWithOptions: Show[(Card, DiceSet)] = values =>
     |------------------------------------------
     """.stripMargin
 
-val animateCardWithOptions: Animation[(Card, DiceSet)] =
-  Animation.fromShow()
+def animateCardWithOptions(card: Card, options: DiceSet): Animation =
+  Animation.frame(drawCardWithOptions(card, options))

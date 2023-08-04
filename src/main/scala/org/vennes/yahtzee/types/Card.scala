@@ -141,7 +141,7 @@ object Card:
         case "smallstraight" => Opt.SmallStraight.some
         case "largestraight" => Opt.LargeStraight.some
         case "yahtzee"       => Opt.Yahtzee.some
-        case "chance"        => Opt.Chance.some
+        case "ance"          => Opt.Chance.some
         case _               => None
 
   def whenNone[A, B](option: Option[A], value: => B): Option[B] =
@@ -224,7 +224,7 @@ object Card:
     dice.toIntList.sum
 
   def scoreOpt(opt: Opt, dice: DiceSet): Int =
-    (opt match
+    (opt match {
       case Opt.Ones          => scoreOnes
       case Opt.Twos          => scoreTwos
       case Opt.Threes        => scoreThrees
@@ -238,10 +238,10 @@ object Card:
       case Opt.LargeStraight => scoreLargeStraight
       case Opt.Yahtzee       => scoreYahtzee
       case Opt.Chance        => scoreChance
-    )(dice)
+    })(dice)
 
   def scoreCardByOpt(card: Card, opt: Opt, dice: DiceSet): Option[Card] =
-    opt match
+    opt match {
       case Opt.Ones          => card.withOnes(dice)
       case Opt.Twos          => card.withTwos(dice)
       case Opt.Threes        => card.withThrees(dice)
@@ -255,6 +255,7 @@ object Card:
       case Opt.LargeStraight => card.withLargeStraight(dice)
       case Opt.Yahtzee       => card.withYahtzee(dice)
       case Opt.Chance        => card.withChance(dice)
+    }
 
   def initial(): Card =
     Card(
