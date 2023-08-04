@@ -16,7 +16,7 @@ First Roll:
      A          B          C          D          E
 ```
 
-To re-roll A, C, and D to try and get more fours, one would say `roll a c e`, or more simply, `roll ace`.
+To re-roll A, C, and E to try and get more fours, one would say `roll a c e`, or more simply, `roll ace`.
 
 Making a selection of where to store a roll can be done with the `ch` phrase.
 For example, to choose to save a roll in the full house space, one would say `ch full house` or `ch fullhouse`.
