@@ -6,6 +6,7 @@ import cats.Show
 import org.vennes.yahtzee.animation.Animation
 
 def drawCard(card: Card): String =
+  val topScore = card.topScore
   s"""-------------------------------
     |ones             | ${card.ones.fold("_")(_.show)}
     |twos             | ${card.twos.fold("_")(_.show)}
@@ -14,7 +15,7 @@ def drawCard(card: Card): String =
     |fives            | ${card.fives.fold("_")(_.show)}
     |sixes            | ${card.sixes.fold("_")(_.show)}
     |------------------------------
-    |top              | ${card.topScore}
+    |top              | ${card.topBonus.fold(card.topScore)(b => s"${card.topScore} + $b")}
     |------------------------------
     |three of a kind  | ${card.threeOak.fold("_")(_.show)}
     |four of a kind   | ${card.fourOak.fold("_")(_.show)}
@@ -24,6 +25,8 @@ def drawCard(card: Card): String =
     |chance           | ${card.chance.fold("_")(_.show)}
     |yahtzee          | ${card.yahtzee.fold("_")(_.show)}
     |bonuses          | ${card.bonuses * 50}
+    |-------------------------------
+    |bottom           | ${card.bottomScore}
     |-------------------------------
     |total            | ${card.score}
     |-------------------------------""".stripMargin
@@ -50,7 +53,7 @@ def drawCardWithOptions(card: Card, dice: DiceSet): String =
     |fives            | ${optValue(_.fives, Card.scoreFives, card, dice)}
     |sixes            | ${optValue(_.sixes, Card.scoreSixes, card, dice)}
     |-----------------------------------------
-    |top              | ${card.topScore}
+    |top              | ${card.topBonus.fold(card.topScore)(b => s"${card.topScore} + $b")}
     |-----------------------------------------
     |three of a kind  | ${optValue(_.threeOak, Card.scoreThreeOak, card, dice)}
     |four of a kind   | ${optValue(_.fourOak, Card.scoreFourOak, card, dice)}
@@ -76,9 +79,10 @@ def drawCardWithOptions(card: Card, dice: DiceSet): String =
     |chance           | ${optValue(_.chance, Card.scoreChance, card, dice)}
     |bonuses          | ${card.bonuses * 50}
     |------------------------------------------
-    |total            | ${card.score}
+    |bottom           | ${card.bottomScore}
     |------------------------------------------
-    """.stripMargin
+    |total            | ${card.score}
+    |------------------------------------------""".stripMargin
 
 def animateCardWithOptions(card: Card, options: DiceSet): Animation =
   Animation.frame(drawCardWithOptions(card, options))

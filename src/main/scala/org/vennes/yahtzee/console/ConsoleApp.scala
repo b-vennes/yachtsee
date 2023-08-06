@@ -151,7 +151,6 @@ object ConsoleApp extends IOApp.Simple {
     state.tailRecM[IO, Unit](s =>
       for
         _ <- animateGameState(s).animate(0.2.seconds)
-        _ <- IO.println("")
         stateOpt <- handleState(s)
         result = stateOpt.fold(().asRight[GameState])(_.asLeft[Unit])
       yield result
@@ -161,4 +160,8 @@ object ConsoleApp extends IOApp.Simple {
     random.flatMap[Unit](implicit random =>
       game(GameState.TurnStart(Card.initial()))
     )
+
+  // Fully disable the starvation checker unless debugging
+  override def runtimeConfig = 
+    super.runtimeConfig.copy(cpuStarvationCheckInitialDelay = Duration.Inf)
 }
