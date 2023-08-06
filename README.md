@@ -26,7 +26,7 @@ Enjoy!
 ## Run application
 
 ```shell
-sbt run
+sbt yahtzeeNative/run
 ```
 
 ## Run tests
@@ -36,4 +36,32 @@ Use the following SBT task to run all the tests.
 
 ```shell
 sbt test
+```
+
+## Compile
+
+### Java
+
+```shell
+sbt yahtzeeJVM/compile
+```
+
+### Native
+
+```shell
+sbt yahtzeeNative/compile
+```
+
+## Package
+
+### Java
+
+```shell
+sbt yahtzeeJVM/assembly
+```
+
+### Native
+
+```shell
+sbt yahtzeeNative/nativeLink
 ```

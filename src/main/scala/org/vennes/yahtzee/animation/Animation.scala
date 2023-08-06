@@ -15,19 +15,19 @@ case class Animation(get: IO[(String, Option[Animation])]) {
 
   def animate(interval: FiniteDuration): IO[Unit] =
     for {
-      _ <- IO.delay(print(clearScreenCode))
+      _ <- IO.print(clearScreenCode)
       frameValue <- frame
       _ <- IO.println(frameValue)
       nextValue <- next
       _ <- nextValue.fold(IO.unit)(a =>
-        IO.sleep(interval) *> a.animate(interval)
+          IO.sleep(interval).flatMap(_ => a.animate(interval))
       )
     } yield ()
 }
 
 object Animation {
   def frame(frame: String): Animation =
-    Animation(IO.pure(frame -> None))
+    Animation(IO.delay(frame -> None))
 
   def unfold[A](
       initial: A,
@@ -39,7 +39,7 @@ object Animation {
     )
 
   def pure(frame: String, next: Option[Animation]): Animation =
-    Animation(IO.pure(frame -> next))
+    Animation(IO.delay(frame -> next))
 
   def row(
       joinWith: String,
